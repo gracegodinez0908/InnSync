@@ -14,6 +14,11 @@ export default function UserLogin() {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState("");
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -282,6 +287,7 @@ export default function UserLogin() {
 
                   <button
                     type="button"
+                    onClick={() => setForgotOpen(true)}
                     className="hover:text-black transition"
                   >
                     Forgot Password?
@@ -309,6 +315,69 @@ export default function UserLogin() {
                   : "REGISTER"}
               </button>
             </form>
+
+            {/* FORGOT PASSWORD MODAL */}
+            {forgotOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded-xl p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold mb-3">Reset your password</h3>
+
+                  <p className="text-sm text-gray-600 mb-3">Enter the email associated with your account and we'll send a password reset link.</p>
+
+                  <input
+                    type="email"
+                    value={forgotEmail || formData.email}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="Email"
+                    className="w-full border px-3 py-2 rounded mb-3"
+                  />
+
+                  {forgotMsg && <p className="text-sm text-green-600 mb-2">{forgotMsg}</p>}
+
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => setForgotOpen(false)}
+                      className="px-4 py-2 rounded border"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        const emailToSend = forgotEmail || formData.email;
+                        if (!emailToSend) {
+                          setForgotMsg("Please enter an email.");
+                          return;
+                        }
+
+                        setForgotLoading(true);
+                        setForgotMsg("");
+
+                        try {
+                          const { data, error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
+                            redirectTo: `${window.location.origin}/auth/user`,
+                          });
+
+                          if (error) {
+                            setForgotMsg(error.message);
+                          } else {
+                            setForgotMsg("Password reset email sent. Check your inbox.");
+                          }
+                        } catch (err: any) {
+                          setForgotMsg(err?.message || "An error occurred.");
+                        }
+
+                        setForgotLoading(false);
+                      }}
+                      className="px-4 py-2 rounded bg-gray-800 text-white"
+                      disabled={forgotLoading}
+                    >
+                      {forgotLoading ? "Sending..." : "Send Reset Email"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* TOGGLE */}
             <div className="mt-6 text-center">
