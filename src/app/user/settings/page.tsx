@@ -39,10 +39,60 @@ function LogoutModal({
   );
 }
 
+function DeleteAccountConfirmModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
+        <div className="flex items-start justify-between mb-4">
+          <div className="text-left">
+            <h2 className="text-lg font-bold mb-2">Delete Account</h2>
+            <p className="text-sm text-gray-600">
+              This will take you to the registration page.
+            </p>
+          </div>
+          <button
+            onClick={onCancel}
+            className="text-2xl text-gray-500 hover:text-gray-900 leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        <p className="font-semibold mb-6 text-black">
+          Are you sure you want to delete your account?
+        </p>
+
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={onConfirm}
+            className="bg-red-600 text-white px-4 py-2 rounded font-semibold"
+          >
+            Yes
+          </button>
+
+          <button
+            onClick={onCancel}
+            className="bg-gray-200 text-black px-4 py-2 rounded font-semibold"
+          >
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const router = useRouter();
 
   const [showLogout, setShowLogout] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [userName, setUserName] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -83,7 +133,7 @@ export default function SettingsPage() {
           onCancel={() => setShowLogout(false)}
           onConfirm={async () => {
             await supabase.auth.signOut();
-            router.push("/login");
+            router.push("/auth/user");
           }}
         />
       )}
@@ -415,11 +465,7 @@ export default function SettingsPage() {
                 {openSection === "delete" && (
                   <div className="px-6 pb-6 border-t pt-4">
                     <button
-                      onClick={() =>
-                        router.push(
-                          "/user/delete-account"
-                        )
-                      }
+                      onClick={() => setShowDeleteConfirm(true)}
                       className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
                     >
                       Delete My Account
@@ -431,6 +477,16 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <DeleteAccountConfirmModal
+          onConfirm={async () => {
+            await supabase.auth.signOut();
+            router.push("/auth/user");
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
 
       {/* ===================== FOOTER ===================== */}
       <footer className="fixed bottom-0 left-56 right-0 bg-[#3a4659] text-white text-xs py-4 px-6 flex justify-between items-center">

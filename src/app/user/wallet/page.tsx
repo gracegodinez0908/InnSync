@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 type View = "menu" | "balance" | "payment" | "transactions";
 
@@ -49,6 +50,29 @@ export default function WalletPage() {
     },
   ]);
 
+  const [userName, setUserName] = useState("");
+  const [avatar, setAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) return;
+      const userId = userData.user.id;
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", userId)
+        .single();
+
+      if (data) {
+        setUserName(data.full_name);
+        setAvatar(data.avatar_url);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   const totalWallet = balance + cashback;
 
   const getToday = () => new Date().toISOString().split("T")[0];
@@ -71,148 +95,112 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] flex text-gray-900">
-
-      {/* ================= SIDEBAR ================= */}
-      <aside className="w-64 bg-[#1d2433] text-white p-6 hidden lg:flex flex-col justify-between">
-
-        <div>
-          <div className="flex flex-col items-center mb-10">
-            <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"
-              alt="Profile"
-              className="w-20 h-20 rounded-full border-2 border-white object-cover"
-            />
-
-            <h2 className="mt-3 text-lg font-semibold">User Name</h2>
+    <div className="flex min-h-screen bg-gray-100 text-black">
+      <aside className="w-56 bg-[#3a4659] text-white p-6 flex flex-col">
+        <div className="mb-10 text-center">
+          <div className="mx-auto mb-3 h-16 w-16 overflow-hidden rounded-full bg-white text-2xl font-bold text-[#3a4659] flex items-center justify-center">
+            {avatar ? (
+              <img src={avatar} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              "U"
+            )}
           </div>
-
-          <div className="space-y-2">
-
-            <button
-              onClick={() => router.push("/user/profile")}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#2b3448]"
-            >
-              Profile
-            </button>
-
-            <button
-              onClick={() => router.push("/user/dashboard")}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#2b3448]"
-            >
-              Dashboard
-            </button>
-
-            <button
-              onClick={() => router.push("/user/inbox")}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#2b3448]"
-            >
-              Inbox
-            </button>
-
-            <button
-              onClick={() => setView("menu")}
-              className="w-full text-left px-4 py-3 rounded-xl bg-[#2b3448]"
-            >
-              My Wallet
-            </button>
-
-            <button
-              onClick={() => router.push("/user/notifications")}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#2b3448]"
-            >
-              Notifications
-            </button>
-
-            <button
-              onClick={() => router.push("/user/settings")}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#2b3448]"
-            >
-              Settings
-            </button>
-
-          </div>
+          <p className="font-semibold">{userName || "User"}</p>
         </div>
 
-        <div className="space-y-2">
-          <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#2b3448]">
+        <div className="flex-1 space-y-2 text-sm">
+          <button
+            onClick={() => router.push("/user/dashboard")}
+            className="w-full rounded-xl px-4 py-3 text-left hover:bg-white/10"
+          >
+            Dashboard
+          </button>
+          <button
+            onClick={() => router.push("/user/inbox")}
+            className="w-full rounded-xl px-4 py-3 text-left hover:bg-white/10"
+          >
+            Inbox
+          </button>
+          <button
+            onClick={() => setView("menu")}
+            className="w-full rounded-xl bg-white px-4 py-3 text-left text-[#3a4659] font-semibold"
+          >
+            Wallet
+          </button>
+          <button
+            onClick={() => router.push("/user/notifications")}
+            className="w-full rounded-xl px-4 py-3 text-left hover:bg-white/10"
+          >
+            Notifications
+          </button>
+          <button
+            onClick={() => router.push("/user/settings")}
+            className="w-full rounded-xl px-4 py-3 text-left hover:bg-white/10"
+          >
+            Settings
+          </button>
+        </div>
+
+        <div className="mt-8 space-y-2 text-sm">
+          <button
+            onClick={() => router.push("/user/help")}
+            className="w-full rounded-xl px-4 py-3 text-left hover:bg-white/10"
+          >
             Help & Support
           </button>
-
-          <button className="w-full text-left px-4 py-3 rounded-xl text-red-300 hover:bg-[#2b3448]">
-            Log out
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              router.push("/auth/user");
+            }}
+            className="w-full rounded-xl px-4 py-3 text-left text-red-200 hover:bg-white/10"
+          >
+            Logout
           </button>
         </div>
       </aside>
 
-      {/* ================= MAIN ================= */}
       <div className="flex-1 flex flex-col">
-
-        {/* HEADER */}
         <header className="bg-white px-10 py-6 border-b flex items-center gap-4">
           <button onClick={goBack} className="text-2xl font-bold">
             ←
           </button>
-
-          <h1 className="text-3xl font-semibold">
-            My Wallet
-          </h1>
+          <h1 className="text-3xl font-semibold">My Wallet</h1>
         </header>
 
         <main className="flex-1 p-10">
-
-          {/* MENU */}
           {view === "menu" && (
             <div className="space-y-4 max-w-xl">
-
               <button
                 onClick={() => setView("balance")}
                 className="w-full p-5 bg-white rounded-2xl shadow-sm text-left"
               >
                 Wallet Balance
               </button>
-
               <button
                 onClick={() => setView("payment")}
                 className="w-full p-5 bg-white rounded-2xl shadow-sm text-left"
               >
-                Payment 
+                Payment
               </button>
-
               <button
                 onClick={() => setView("transactions")}
                 className="w-full p-5 bg-white rounded-2xl shadow-sm text-left"
               >
                 Transaction History
               </button>
-
             </div>
           )}
 
-          {/* BALANCE */}
           {view === "balance" && (
             <div className="p-8 bg-blue-200 rounded-2xl max-w-xl">
-
-              <h2 className="text-2xl font-bold mb-4">
-                Wallet Balance
-              </h2>
-
-              <p className="text-4xl font-bold">
-                ₱{totalWallet.toLocaleString()}
-              </p>
-
-              <p className="mt-4">
-                Balance: ₱{balance.toLocaleString()}
-              </p>
-
-              <p>
-                Cashback: ₱{cashback.toLocaleString()}
-              </p>
-
+              <h2 className="text-2xl font-bold mb-4">Wallet Balance</h2>
+              <p className="text-4xl font-bold">₱{totalWallet.toLocaleString()}</p>
+              <p className="mt-4">Balance: ₱{balance.toLocaleString()}</p>
+              <p>Cashback: ₱{cashback.toLocaleString()}</p>
             </div>
           )}
 
-          {/* PAYMENT */}
           {view === "payment" && (
             <PaymentMini
               totalWallet={totalWallet}
@@ -226,14 +214,9 @@ export default function WalletPage() {
             />
           )}
 
-          {/* TRANSACTIONS */}
           {view === "transactions" && (
-            <div className="bg-white p-6 rounded-2xl">
-
-              <h2 className="text-xl font-bold mb-4">
-                Transactions
-              </h2>
-
+            <div className="bg-white p-6 rounded-2xl max-w-3xl">
+              <h2 className="text-xl font-bold mb-4">Transactions</h2>
               {transactions.map((tx) => (
                 <div
                   key={tx.id}
@@ -241,38 +224,25 @@ export default function WalletPage() {
                 >
                   <div>
                     <p className="font-medium">{tx.title}</p>
-
-                    <p className="text-sm text-gray-500">
-                      {tx.date}
-                    </p>
-
-                    <p className="text-xs">
-                      {tx.paymentMethod}
-                    </p>
+                    <p className="text-sm text-gray-500">{tx.date}</p>
+                    <p className="text-xs">{tx.paymentMethod}</p>
                   </div>
-
-                  <p
-                    className={
-                      tx.type === "credit"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }
-                  >
-                    {tx.amount < 0 ? "-" : "+"}₱
-                    {Math.abs(tx.amount).toLocaleString()}
+                  <p className={tx.type === "credit" ? "text-green-600" : "text-red-600"}>
+                    {tx.amount < 0 ? "-" : "+"}₱{Math.abs(tx.amount).toLocaleString()}
                   </p>
                 </div>
               ))}
             </div>
           )}
-
         </main>
 
-        {/* FOOTER */}
-        <footer className="bg-[#1d2433] text-white px-10 py-5 text-sm">
-          © 2026 Inn Sync. All rights reserved.
+        <footer className="fixed bottom-0 left-56 right-0 bg-[#3a4659] text-white text-xs py-4 px-6 flex justify-between items-center">
+          <p className="text-sm font-medium">© 2026 Inn Sync. All rights reserved.</p>
+          <div className="flex gap-5 text-sm">
+            <button className="hover:underline" onClick={() => router.push("/privacy")}>Privacy Policy</button>
+            <button className="hover:underline" onClick={() => router.push("/terms")}>Terms & Conditions</button>
+          </div>
         </footer>
-
       </div>
     </div>
   );

@@ -206,7 +206,7 @@ export default function DashboardPage() {
           onCancel={() => setShowLogout(false)}
           onConfirm={async () => {
             await supabase.auth.signOut();
-            router.push("/login");
+            router.push("/auth/user");
           }}
         />
       )}

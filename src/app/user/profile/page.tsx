@@ -5,104 +5,148 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 /* ================= SIDEBAR ================= */
-function Sidebar({ fullName }: any) {
+function Sidebar({
+  fullName,
+  profilePreview,
+}: {
+  fullName: string;
+  profilePreview: string;
+}) {
   const router = useRouter();
 
+  const [showLogout, setShowLogout] = useState(false);
+
   return (
-    <div className="w-40 bg-[#3f4b63] text-white min-h-screen fixed left-0 top-0 flex flex-col justify-between">
+    <>
+      {/* LOGOUT MODAL */}
+      {showLogout && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
+            <h2 className="text-lg font-bold mb-4 text-black">
+              Are you sure you want to log out?
+            </h2>
 
-      {/* TOP */}
-      <div>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push("/auth/user");
+                }}
+                className="bg-red-600 text-white px-4 py-2 rounded"
+              >
+                Yes
+              </button>
 
-        {/* PROFILE */}
-        <div className="flex flex-col items-center py-6">
-
-          <div className="w-14 h-14 rounded-full bg-white mb-2"></div>
-
-          <h2 className="font-semibold text-lg">
-            {fullName || "User"}
-          </h2>
-
+              <button
+                onClick={() => setShowLogout(false)}
+                className="bg-gray-300 px-4 py-2 rounded text-black"
+              >
+                No
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* MENU */}
-        <ul className="mt-6 space-y-7 px-8 text-[15px]">
-
-          <li
-            onClick={() => router.push("/user/dashboard")}
-            className="cursor-pointer hover:text-gray-300"
-          >
-            Dashboard
-          </li>
-
-          <li
-            onClick={() => router.push("/inbox")}
-            className="cursor-pointer hover:text-gray-300"
-          >
-            Inbox
-          </li>
-
-          <li
-            onClick={() => router.push("/wallet")}
-            className="cursor-pointer hover:text-gray-300"
-          >
-            Wallet
-          </li>
-
-          <li
-            onClick={() => router.push("/notifications")}
-            className="cursor-pointer hover:text-gray-280"
-          >
-            Notifications
-          </li>
-
-          <li
-            onClick={() => router.push("/settings")}
-            className="cursor-pointer hover:text-gray-280"
-          >
-            Settings
-          </li>
-        </ul>
-      </div>
-
-      {/* BOTTOM */}
-      <div className="px-8 pb-10">
-
-        <button
-          onClick={() => router.push("/help")}
-          className="text-[15px] hover:text-gray-280"
+      <div className="w-56 bg-[#3a4659] text-white p-4 flex flex-col fixed left-0 top-0 min-h-screen">
+        {/* PROFILE */}
+        <div
+          onClick={() => router.push("/user/profile")}
+          className="mb-6 cursor-pointer text-center"
         >
-          Help & Support
-        </button>
-
-        <div className="mt-8 flex items-center gap-3">
-
-          <div className="w-10 h-10 rounded-full border border-white flex items-center justify-center">
-            N
+          <div className="w-14 h-14 mx-auto rounded-full bg-white overflow-hidden flex items-center justify-center">
+            {profilePreview ? (
+              <img
+                src={profilePreview}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              "U"
+            )}
           </div>
 
+          <p className="mt-2 font-semibold">
+            {fullName || "User"}
+          </p>
+        </div>
+
+        {/* NAVIGATION */}
+        <div className="flex flex-col gap-2 text-sm flex-1">
           <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              router.push("/login");
-            }}
-            className="text-red-280 hover:text-red-180"
+            onClick={() => router.push("/user/dashboard")}
+            className="text-left p-2 hover:bg-white/10 rounded"
           >
-            Logout
+            Dashboard
           </button>
 
+          <button
+            onClick={() => router.push("/user/inbox")}
+            className="text-left p-2 hover:bg-white/10 rounded"
+          >
+            Inbox
+          </button>
+
+          <button
+            onClick={() => router.push("/user/wallet")}
+            className="text-left p-2 hover:bg-white/10 rounded"
+          >
+            Wallet
+          </button>
+
+          <button
+            onClick={() => router.push("/user/notifications")}
+            className="text-left p-2 hover:bg-white/10 rounded"
+          >
+            Notifications
+          </button>
+
+          <button
+            onClick={() => router.push("/user/settings")}
+            className="text-left p-2 hover:bg-white/10 rounded"
+          >
+            Settings
+          </button>
+
+          <div className="mt-auto pt-6 flex flex-col gap-2">
+            <button
+              onClick={() => router.push("/user/help")}
+              className="text-left p-2 hover:bg-white/10 rounded"
+            >
+              Help & Support
+            </button>
+
+            <button
+              onClick={() => setShowLogout(true)}
+              className="text-left p-2 hover:bg-white/10 rounded text-red-200"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
 /* ================= FOOTER ================= */
 function Footer() {
+  const router = useRouter();
+
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-[#3f4b63] text-white text-center p-3 text-xs z-40">
-      Terms & Conditions | Privacy Policy
-    </div>
+    <footer className="fixed bottom-0 left-56 right-0 bg-[#3a4659] text-white text-xs py-4 px-6 flex justify-between items-center z-40">
+      <button onClick={() => router.push("/terms")}>
+        Terms & Conditions
+      </button>
+
+      <button onClick={() => router.push("/privacy")}>
+        Privacy Policy
+      </button>
+
+      <button onClick={() => router.push("/cookies")}>
+        Cookie Policy
+      </button>
+    </footer>
   );
 }
 
@@ -110,29 +154,25 @@ function Footer() {
 function SaveConfirm({ onYes, onNo }: any) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-      <div className="bg-white p-6 rounded shadow w-80 text-center">
-
-        <p className="font-bold mb-4 text-gray-900">
-          Do you want to save changes?
+      <div className="bg-white p-6 rounded-xl shadow-lg w-80 text-center">
+        <p className="font-bold mb-4 text-black uppercase">
+          ARE YOU SURE YOU WANT TO SAVE CHANGES
         </p>
 
         <div className="flex justify-center gap-4">
-
           <button
             onClick={onYes}
-            className="bg-green-600 text-white px-4 py-1 rounded font-bold"
+            className="bg-green-600 text-white px-4 py-2 rounded font-bold"
           >
             Yes
           </button>
 
           <button
             onClick={onNo}
-            className="bg-red-600 text-white px-4 py-1 rounded font-bold"
+            className="bg-red-600 text-white px-4 py-2 rounded font-bold"
           >
             No
           </button>
-
         </div>
       </div>
     </div>
@@ -149,16 +189,16 @@ function EditModal({
 }: any) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-      <div className="bg-white w-[420px] p-6 rounded shadow">
-
+      <div className="bg-white w-[420px] p-6 rounded-xl shadow-lg">
         {/* NAME */}
         {type === "name" && (
           <>
-            <p className="font-bold mb-3">Name</p>
+            <p className="font-bold mb-3 text-lg">
+              Name
+            </p>
 
             <input
-              className="w-full border p-2 mb-2"
+              className="w-full border p-2 mb-2 rounded"
               placeholder="First Name"
               value={data.first}
               onChange={(e) =>
@@ -167,7 +207,7 @@ function EditModal({
             />
 
             <input
-              className="w-full border p-2 mb-2"
+              className="w-full border p-2 mb-2 rounded"
               placeholder="Middle Name"
               value={data.middle}
               onChange={(e) =>
@@ -176,7 +216,7 @@ function EditModal({
             />
 
             <input
-              className="w-full border p-2"
+              className="w-full border p-2 rounded"
               placeholder="Last Name"
               value={data.last}
               onChange={(e) =>
@@ -189,10 +229,12 @@ function EditModal({
         {/* USERNAME */}
         {type === "username" && (
           <>
-            <p className="font-bold mb-3">Username</p>
+            <p className="font-bold mb-3 text-lg">
+              Username
+            </p>
 
             <input
-              className="w-full border p-2 mb-2"
+              className="w-full border p-2 mb-2 rounded"
               placeholder="New Username"
               value={data.new}
               onChange={(e) =>
@@ -201,7 +243,7 @@ function EditModal({
             />
 
             <input
-              className="w-full border p-2"
+              className="w-full border p-2 rounded"
               placeholder="Confirm Username"
               value={data.confirm}
               onChange={(e) =>
@@ -214,11 +256,13 @@ function EditModal({
         {/* PASSWORD */}
         {type === "password" && (
           <>
-            <p className="font-bold mb-3">Password</p>
+            <p className="font-bold mb-3 text-lg">
+              Password
+            </p>
 
             <input
               type="password"
-              className="w-full border p-2 mb-2"
+              className="w-full border p-2 mb-2 rounded"
               placeholder="New Password"
               value={data.new}
               onChange={(e) =>
@@ -228,7 +272,7 @@ function EditModal({
 
             <input
               type="password"
-              className="w-full border p-2"
+              className="w-full border p-2 rounded"
               placeholder="Confirm Password"
               value={data.confirm}
               onChange={(e) =>
@@ -241,10 +285,12 @@ function EditModal({
         {/* PHONE */}
         {type === "phone" && (
           <>
-            <p className="font-bold mb-3">Mobile Number</p>
+            <p className="font-bold mb-3 text-lg">
+              Mobile Number
+            </p>
 
             <input
-              className="w-full border p-2"
+              className="w-full border p-2 rounded"
               value={data.value}
               onChange={(e) =>
                 setData({ ...data, value: e.target.value })
@@ -256,11 +302,13 @@ function EditModal({
         {/* BIRTHDAY */}
         {type === "birthday" && (
           <>
-            <p className="font-bold mb-3">Birthdate</p>
+            <p className="font-bold mb-3 text-lg">
+              Birthdate
+            </p>
 
             <input
               type="date"
-              className="w-full border p-2"
+              className="w-full border p-2 rounded"
               value={data.value}
               onChange={(e) =>
                 setData({ ...data, value: e.target.value })
@@ -269,45 +317,45 @@ function EditModal({
           </>
         )}
 
-       {/* GENDER */}
-{type === "gender" && (
-  <>
-    <p className="font-bold mb-3">Gender</p>
+        {/* GENDER */}
+        {type === "gender" && (
+          <>
+            <p className="font-bold mb-3 text-lg">
+              Gender
+            </p>
 
-    <select
-      className="w-full border p-2"
-      value={data.value}
-      onChange={(e) =>
-        setData({ ...data, value: e.target.value })
-      }
-    >
-      <option value="">Select Gender</option>
-      <option value="Female">Female</option>
-      <option value="Male">Male</option>
-      <option value="Prefer not to say">
-        Prefer not to say
-      </option>
-    </select>
-  </>
-)}  
+            <select
+              className="w-full border p-2 rounded"
+              value={data.value}
+              onChange={(e) =>
+                setData({ ...data, value: e.target.value })
+              }
+            >
+              <option value="">Select Gender</option>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Prefer not to say">
+                Prefer not to say
+              </option>
+            </select>
+          </>
+        )}
 
         {/* BUTTONS */}
         <div className="flex justify-end gap-2 mt-5">
-
           <button
             onClick={onCancel}
-            className="bg-gray-300 px-3 py-1 rounded"
+            className="bg-gray-300 px-4 py-2 rounded"
           >
             Cancel
           </button>
 
           <button
             onClick={onConfirm}
-            className="bg-blue-600 text-white px-3 py-1 rounded"
+            className="bg-blue-600 text-white px-4 py-2 rounded"
           >
             Confirm
           </button>
-
         </div>
       </div>
     </div>
@@ -344,7 +392,6 @@ export default function UserProfile() {
   /* LOAD */
   useEffect(() => {
     const load = async () => {
-
       const { data: user } = await supabase.auth.getUser();
 
       const { data } = await supabase
@@ -376,11 +423,9 @@ export default function UserProfile() {
 
   /* OPEN EDIT */
   const openEdit = (type: string) => {
-
     setEditType(type);
 
     if (type === "name") {
-
       const [first = "", middle = "", last = ""] =
         form.fullName.split(" ");
 
@@ -389,9 +434,7 @@ export default function UserProfile() {
         middle,
         last,
       });
-
     } else {
-
       setEditData({
         value: (form as any)[type],
         new: "",
@@ -404,28 +447,22 @@ export default function UserProfile() {
 
   /* CONFIRM EDIT */
   const confirmEdit = () => {
-
     let updated: any = { ...form };
 
     if (editType === "name") {
-
       updated.fullName =
         `${editData.first} ${editData.middle} ${editData.last}`;
-
     } else if (
       editType === "username" ||
       editType === "password"
     ) {
-
       if (editData.new !== editData.confirm) {
         alert("Values do not match");
         return;
       }
 
       updated[editType] = editData.new;
-
     } else {
-
       updated[editType] = editData.value;
     }
 
@@ -440,7 +477,6 @@ export default function UserProfile() {
   const handleProfilePic = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-
     const file = e.target.files?.[0];
 
     if (!file) return;
@@ -473,7 +509,6 @@ export default function UserProfile() {
 
   /* SAVE */
   const save = async () => {
-
     const { data: user } = await supabase.auth.getUser();
 
     await supabase.from("profiles").upsert({
@@ -497,32 +532,40 @@ export default function UserProfile() {
 
   return (
     <div className="flex bg-gray-100 min-h-screen text-gray-900">
-
-      <Sidebar fullName={form.fullName} />
+      <Sidebar
+        fullName={form.fullName}
+        profilePreview={profilePreview}
+      />
 
       {/* MAIN */}
-      <div className="ml-60 flex-1 p-6 pb-20">
+      <div className="ml-56 flex-1 p-8 pb-32 overflow-y-auto">
+        {/* HEADER */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold">
+            Inn Sync
+          </h1>
+
+          <div className="flex justify-center mt-2">
+            <div className="w-1/2 border-b border-gray-400"></div>
+          </div>
+        </div>
 
         {/* BACK */}
         <button
           onClick={() => router.push("/user/dashboard")}
-          className="mb-4 flex items-center gap-2 text-sm font-bold text-gray-800 hover:text-blue-600"
+          className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-800 hover:text-blue-600"
         >
           ← Back
         </button>
 
-        {/* HEADER */}
-        <div className="text-center mb-6">
-
+        {/* PROFILE */}
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">
             My Profile
           </h1>
 
-          {/* PROFILE PIC */}
           <div className="mt-5 flex flex-col items-center">
-
             <div className="w-28 h-28 rounded-full overflow-hidden bg-gray-300">
-
               {profilePreview ? (
                 <img
                   src={profilePreview}
@@ -534,7 +577,6 @@ export default function UserProfile() {
                   No Image
                 </div>
               )}
-
             </div>
 
             <p className="text-gray-600 mt-3">
@@ -555,13 +597,11 @@ export default function UserProfile() {
               onChange={handleProfilePic}
               className="hidden"
             />
-
           </div>
         </div>
 
         {/* FIELDS */}
         <div className="max-w-2xl mx-auto space-y-4">
-
           {[
             { label: "Name", key: "name" },
             { label: "Username", key: "username" },
@@ -571,31 +611,25 @@ export default function UserProfile() {
             { label: "Birthdate", key: "birthday" },
             { label: "Gender", key: "gender" },
           ].map((f) => (
-
             <div
               key={f.key}
               className="flex items-center gap-3"
             >
-
               <div className="w-40 font-bold">
                 {f.label}
               </div>
 
-              <div className="flex-1 border p-3 bg-white rounded">
-
+              <div className="flex-1 border p-3 bg-white rounded-lg shadow-sm">
                 {(form as any)[f.key]}
-
               </div>
 
               {f.key !== "email" && (
-
                 <button
                   onClick={() => openEdit(f.key)}
-                  className="text-blue-700 font-bold"
+                  className="text-blue-700 font-bold hover:underline"
                 >
                   Edit
                 </button>
-
               )}
             </div>
           ))}
